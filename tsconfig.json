@@ -26,6 +26,9 @@
       ],
       "@user/*": [
         "./src/features/user/*"
+      ],
+      "@root/*": [
+        "./src/features/root/*"
       ]
     }
   }

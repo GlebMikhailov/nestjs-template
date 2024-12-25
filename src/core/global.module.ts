@@ -8,6 +8,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppService } from '@core/app/app.service';
 import { CorsUpdater } from '@core/cors/cors-updater';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { CommandModule } from 'nestjs-command';
 
 @Global()
 @Module({
@@ -34,6 +35,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
                 limit: 20,
             },
         ]),
+        CommandModule,
     ],
     providers: [AppService, CorsUpdater],
     exports: [
@@ -43,6 +45,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
         PersistenceModule,
         EventEmitterModule,
         CorsUpdater,
+        CommandModule,
     ],
 })
-export class CommonModule {}
+export class GlobalModule {}

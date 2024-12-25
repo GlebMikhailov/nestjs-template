@@ -1,12 +1,13 @@
-import { PrismaService } from '../../../../core/persistence/prisma.service';
-import { DatabaseRepository } from '../adapters/persistence/database.repository';
+import { PrismaService } from '@core/persistence/prisma.service';
+import { AuthDatabaseRepository } from '@auth/infrastructure/adapters/persistence/auth-database.repository';
+import { JwtService } from '@nestjs/jwt';
 
 export const AUTH_DATABASE_REPOSITORY_TOKEN = 'AUTH_DATABASE_REPOSITORY_TOKEN';
 
 export const DatabaseRepositoryProvider = {
     provide: AUTH_DATABASE_REPOSITORY_TOKEN,
-    useFactory: (prismaService: PrismaService) => {
-        return new DatabaseRepository(prismaService);
+    useFactory: (prismaService: PrismaService, jwtService: JwtService) => {
+        return new AuthDatabaseRepository(prismaService, jwtService);
     },
-    inject: [PrismaService],
+    inject: [PrismaService, JwtService],
 };

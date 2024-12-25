@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { HttpControllers } from './adapters/http/controllers';
 import { Providers } from './providers';
+import { HttpControllers } from '@user/infrastructure/adapters/http/controllers';
 
 @Module({
     controllers: [...HttpControllers],
     providers: [...Providers],
     exports: [...Providers],
 })
-export class InfrastructureModule {}
+export class UserInfrastructureModule {}

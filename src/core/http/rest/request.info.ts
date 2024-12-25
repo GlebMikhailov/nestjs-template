@@ -8,7 +8,7 @@ export const USER_ROLES_KEY = 'user_roles';
 export const CLIENTS_KEY = 'clients';
 
 export interface IUserAuthorizationMeta {
-    roles: TUserRole[];
+    roles: TUserRole[] | '*';
 }
 
 export interface IAuthorizationMeta {
@@ -50,7 +50,9 @@ export function RestRequestInfo(meta: IRestRequestInfoMeta) {
         const clients: TClient[] = [];
         if (meta.authorization.user) {
             decorators.push(ApiResponse({ description: 'unauthorized', status: 401 }));
-            decorators.push(SetMetadata(USER_ROLES_KEY, meta.authorization.user.roles));
+            if (meta.authorization.user.roles !== '*') {
+                decorators.push(SetMetadata(USER_ROLES_KEY, meta.authorization.user.roles));
+            }
             decorators.push(ApiBearerAuth());
             clients.push('User');
         }
