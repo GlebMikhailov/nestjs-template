@@ -1,11 +1,9 @@
-import { Body, Controller, Get, Req } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { SignInDto } from '@auth/domain/dto/sign-in.dto';
-import { SignInCommand } from '@auth/application/commands/sign-in/sign-in.command';
-import { RestRequestInfo } from '@core/http/rest/request.info';
+import { RestRequestInfo, TClientType } from '@core/http/rest/request.info';
 import { SessionResponse } from '@auth/domain/dto/session.response';
-import { Request } from 'express';
+import { Client } from '@core/http/client';
 
 @Controller('user')
 @ApiTags('User')
@@ -19,7 +17,7 @@ export class UserController {
     @RestRequestInfo({
         description: "Get current requestor's user",
         success: {
-            code: '200',
+            code: 200,
             type: SessionResponse,
         },
         badRequest: {},
@@ -29,7 +27,7 @@ export class UserController {
             },
         },
     })
-    async getUser(@Req() request: Request) {
-        console.log('client', request['client-info']);
+    async getUser(@Client() client: TClientType) {
+        console.log('client', client);
     }
 }

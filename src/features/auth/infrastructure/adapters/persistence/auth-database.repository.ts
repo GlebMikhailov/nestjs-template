@@ -5,6 +5,7 @@ import { Sessions } from '@auth/domain/models/sessions.model';
 import { Session } from '@auth/domain/models/session.model';
 import { JwtService } from '@nestjs/jwt';
 import { TUserRole } from '@user/domain/models/role.enum';
+import { SessionNotFound } from '@auth/domain/exceptions';
 
 @Injectable()
 export class AuthDatabaseRepository implements IAuthDatabaseRepository {
@@ -24,22 +25,8 @@ export class AuthDatabaseRepository implements IAuthDatabaseRepository {
 
     async createSession(userId: string, userRole: TUserRole): Promise<Session> {
         const [accessToken, refreshToken] = await Promise.all([
-            this.jwtService.signAsync(
-                {
-                    userId,
-                    role: userRole,
-                    type: 'Access',
-                },
-                { expiresIn: '15m' },
-            ),
-            this.jwtService.signAsync(
-                {
-                    userId,
-                    role: userRole,
-                    type: 'Refresh',
-                },
-                { expiresIn: '30d' },
-            ),
+            this.generateAccessToken(userId, userRole),
+            this.generateRefreshToken(userId, userRole),
         ]);
         const session = await this.prisma.session.create({
             data: {
@@ -51,11 +38,64 @@ export class AuthDatabaseRepository implements IAuthDatabaseRepository {
         return new Session(session);
     }
 
-    updateSession(refreshToken: string): Promise<Session> {
-        throw new Error('Method not implemented.');
+    async updateSession(oldRefreshToken: string): Promise<Session> {
+        const oldSession = await this.prisma.session.findFirst({
+            where: {
+                refreshToken: oldRefreshToken,
+            },
+            include: {
+                user: true,
+            },
+        });
+        if (!oldSession) {
+            throw new SessionNotFound();
+        }
+        const [accessToken, refreshToken] = await Promise.all([
+            this.generateAccessToken(oldSession.user.id, oldSession.user.role),
+            this.generateRefreshToken(oldSession.user.id, oldSession.user.role),
+        ]);
+        const newSession = await this.prisma.session.update({
+            where: {
+                id: oldSession.id,
+            },
+            data: {
+                accessToken,
+                refreshToken,
+            },
+            include: {
+                user: true,
+            },
+        });
+        return new Session(newSession);
     }
 
-    deleteSession(accessToken: string): Promise<void> {
-        throw new Error('Method not implemented.');
+    async deleteSession(accessToken: string): Promise<void> {
+        await this.prisma.session.delete({
+            where: {
+                accessToken,
+            },
+        });
+    }
+
+    private async generateAccessToken(userId: string, userRole: TUserRole) {
+        return this.jwtService.signAsync(
+            {
+                userId,
+                role: userRole,
+                type: 'Access',
+            },
+            { expiresIn: '15m' },
+        );
+    }
+
+    private async generateRefreshToken(userId: string, userRole: TUserRole) {
+        return this.jwtService.signAsync(
+            {
+                userId,
+                role: userRole,
+                type: 'Refresh',
+            },
+            { expiresIn: '30d' },
+        );
     }
 }

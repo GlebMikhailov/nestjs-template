@@ -1,19 +1,32 @@
-import { applyDecorators, SetMetadata, UseGuards } from '@nestjs/common';
+import {
+    applyDecorators,
+    HttpCode,
+    SerializeOptions,
+    SetMetadata,
+    UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { TUserRole } from '@user/domain/models/role.enum';
 import { AuthGuard } from '@core/http/auth.guard';
 
-export type TClient = 'User' | 'Public';
+export type TClientType = 'User' | 'Public';
+
 export const USER_ROLES_KEY = 'user_roles';
 export const CLIENTS_KEY = 'clients';
 
+export const TOKEN_TYPE_KEY = 'tokenTypeKey';
+
 export interface IUserAuthorizationMeta {
     roles: TUserRole[] | '*';
+    /**
+     * @default 'Access'
+     */
+    jwtTokenType?: 'Access' | 'Refresh';
 }
 
 export interface IAuthorizationMeta {
     user?: IUserAuthorizationMeta;
-    isPublic?: boolean;
+    isRequired?: boolean;
 }
 
 export interface IResponseMeta {
@@ -22,8 +35,8 @@ export interface IResponseMeta {
 
 export interface ISuccessResponseMeta {
     description?: string;
-    code: '200' | '201' | '204';
-    type: any;
+    code: 200 | 201 | 204;
+    type?: any;
 }
 
 export interface IRestRequestInfoMeta {
@@ -47,16 +60,25 @@ export function RestRequestInfo(meta: IRestRequestInfoMeta) {
     }
 
     if (meta.authorization) {
-        const clients: TClient[] = [];
+        const clients: TClientType[] = [];
         if (meta.authorization.user) {
             decorators.push(ApiResponse({ description: 'unauthorized', status: 401 }));
+
             if (meta.authorization.user.roles !== '*') {
                 decorators.push(SetMetadata(USER_ROLES_KEY, meta.authorization.user.roles));
             }
-            decorators.push(ApiBearerAuth());
+
+            if (meta.authorization.user.jwtTokenType === 'Refresh') {
+                decorators.push(SetMetadata(TOKEN_TYPE_KEY, 'Refresh'));
+                decorators.push(ApiBearerAuth('Refresh'));
+            } else {
+                decorators.push(SetMetadata(TOKEN_TYPE_KEY, 'Access'));
+                decorators.push(ApiBearerAuth('Access'));
+            }
+
             clients.push('User');
         }
-        if (meta.authorization.isPublic) {
+        if (meta.authorization.isRequired) {
             clients.push('Public');
         }
         decorators.push(ApiResponse({ description: 'unauthorized', status: 401 }));
@@ -71,5 +93,15 @@ export function RestRequestInfo(meta: IRestRequestInfoMeta) {
             type: meta.success.type,
         }),
     );
+
+    decorators.push(
+        SerializeOptions({
+            strategy: 'exposeAll',
+            type: meta.success.type,
+            excludeExtraneousValues: true,
+            enableImplicitConversion: true,
+        }),
+    );
+    decorators.push(HttpCode(meta.success.code));
     return applyDecorators(...decorators);
 }

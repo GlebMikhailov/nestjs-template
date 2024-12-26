@@ -4,7 +4,6 @@ import { CreateUserDto } from '@user/domain/dto/create-user.dto';
 import { User } from '@user/domain/models/user.model';
 import { IUserDatabaseRepository } from '@user/domain/ports/user-database.repository.interface';
 import * as bcrypt from 'bcrypt';
-import { request } from 'express';
 
 @Injectable()
 export class UserDatabaseRepository implements IUserDatabaseRepository {

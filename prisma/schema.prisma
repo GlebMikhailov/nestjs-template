@@ -23,8 +23,8 @@ model User {
 
 model Session {
   id           String   @id @unique @default(uuid()) @db.Uuid
-  accessToken  String
-  refreshToken String
+  accessToken  String   @unique
+  refreshToken String   @unique
   user         User     @relation(fields: [userId], references: [id])
   userId       String   @db.Uuid
   createdAt    DateTime @default(now())

@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
+import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 import { GlobalModule } from '@core/global.module';
 import { RootModule } from '@root/root.module';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { GlobalExceptionFilter } from '@core/exceptions/global-exception-filter';
 
 @Module({
@@ -10,6 +10,10 @@ import { GlobalExceptionFilter } from '@core/exceptions/global-exception-filter'
         {
             provide: APP_FILTER,
             useClass: GlobalExceptionFilter,
+        },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: ClassSerializerInterceptor,
         },
     ],
 })

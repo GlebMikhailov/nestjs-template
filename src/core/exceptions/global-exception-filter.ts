@@ -33,6 +33,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
                 message: exception.message,
             };
         }
+        console.error('exception', exception);
         return {
             message: 'unknown',
         };

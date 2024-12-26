@@ -1,3 +1,3 @@
-import { SignInHandler } from '../commands/sign-in/sign-in.handler';
+import { GetSessionsQuery } from '@auth/application/query/get-sessions/get-sessions.query';
 
-export const QueryHandlers = [SignInHandler];
+export const QueryHandlers = [GetSessionsQuery];

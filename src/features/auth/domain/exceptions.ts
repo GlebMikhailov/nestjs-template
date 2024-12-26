@@ -11,3 +11,9 @@ export class TooManySessions extends AppException {
         super(message);
     }
 }
+
+export class SessionNotFound extends AppException {
+    constructor(message = 'session-not-found') {
+        super(message);
+    }
+}

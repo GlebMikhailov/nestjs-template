@@ -3,3 +3,15 @@ export class AppException extends Error {
         super(message);
     }
 }
+
+export class InvalidTokenType extends AppException {
+    constructor(readonly message: string = 'invalid-token-type') {
+        super(message);
+    }
+}
+
+export class InvalidToken extends AppException {
+    constructor(readonly message: string = 'invalid-token') {
+        super(message);
+    }
+}
