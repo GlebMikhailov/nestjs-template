@@ -1,11 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { RestRequestInfo, TClientType } from '@core/http/rest/request.info';
-import { SessionResponse } from '@auth/domain/dto/session.response';
-import { Client } from '@core/http/client';
+import { RestRequestInfo } from '@core/http/rest/request.info';
+import { Client, TClient } from '@core/http/client';
+import { GetUserQuery } from '@user/application/queries/get-user/get-user.query';
+import { UserResponse } from '@user/domain/dto/user.response';
 
-@Controller('user')
+@Controller('users')
 @ApiTags('User')
 export class UserController {
     constructor(
@@ -18,7 +19,7 @@ export class UserController {
         description: "Get current requestor's user",
         success: {
             code: 200,
-            type: SessionResponse,
+            type: UserResponse,
         },
         badRequest: {},
         authorization: {
@@ -27,7 +28,7 @@ export class UserController {
             },
         },
     })
-    async getUser(@Client() client: TClientType) {
-        console.log('client', client);
+    async getUser(@Client() client: TClient) {
+        return this.queryBus.execute(new GetUserQuery(client.user.userId, client.user.role));
     }
 }

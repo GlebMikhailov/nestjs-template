@@ -5,4 +5,6 @@ export interface IUserDatabaseRepository {
     createUser(createUserDto: CreateUserDto): Promise<void>;
 
     getUserByLogin(login: string): Promise<User | null>;
+
+    getUserById(id: string): Promise<User | null>;
 }

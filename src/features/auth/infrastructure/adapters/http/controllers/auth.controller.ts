@@ -61,7 +61,7 @@ export class AuthController {
             },
         },
     })
-    async updateTokens(@Req() req: Request) {
-        return this.commandBus.execute(new UpdateTokenCommand(req['client-info'].accessToken));
+    async updateTokens(@Client() client: TClient) {
+        return this.commandBus.execute(new UpdateTokenCommand(client.value));
     }
 }

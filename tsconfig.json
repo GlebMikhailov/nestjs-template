@@ -29,6 +29,9 @@
       ],
       "@root/*": [
         "./src/features/root/*"
+      ],
+      "@media/*": [
+        "./src/features/media/*"
       ]
     }
   }

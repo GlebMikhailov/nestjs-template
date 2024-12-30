@@ -7,8 +7,7 @@ import {
     TOKEN_TYPE_KEY,
     USER_ROLES_KEY,
 } from '@core/http/rest/request.info';
-import { EUserRole } from '@user/domain/models/role.enum';
-import { InvalidToken, InvalidTokenType } from '@core/exceptions/app.exception';
+import { TUserRole } from '@user/domain/models/role.enum';
 import { TTokenType } from '@core/http/client';
 import { extractBearerTokenFromHeader } from '@core/http/utils';
 
@@ -45,7 +44,7 @@ export class AuthGuard implements CanActivate {
     private async handleUser(context: ExecutionContext) {
         const request = context.switchToHttp().getRequest();
 
-        const requiredUserRoles = this.reflector.getAllAndOverride<EUserRole[]>(USER_ROLES_KEY, [
+        const requiredUserRoles = this.reflector.getAllAndOverride<TUserRole[]>(USER_ROLES_KEY, [
             context.getHandler(),
             context.getClass(),
         ]);
@@ -62,11 +61,11 @@ export class AuthGuard implements CanActivate {
             request['client-info'] = await this.jwtService.verifyAsync(token);
             if (tokenType === 'Access') {
                 if (request['client-info'].type !== 'Access') {
-                    throw new InvalidTokenType();
+                    return false;
                 }
             } else {
                 if (request['client-info'].type !== 'Refresh') {
-                    throw new InvalidTokenType();
+                    return false;
                 }
             }
             if (!requiredUserRoles) {
@@ -74,10 +73,7 @@ export class AuthGuard implements CanActivate {
             }
             return requiredUserRoles.includes(request['client-info']['role']);
         } catch (err) {
-            if (err instanceof InvalidTokenType) {
-                throw err;
-            }
-            throw new InvalidToken();
+            return false;
         }
     }
 }

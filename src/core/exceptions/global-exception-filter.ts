@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import { AppException } from '@core/exceptions/app.exception';
 import { HttpAdapterHost } from '@nestjs/core';
+import { getExceptionData } from '@core/exceptions/exception.parser';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -14,29 +15,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         httpAdapter.reply(
             response,
             {
-                ...this.getExceptionData(exception),
+                ...getExceptionData(exception),
                 path: httpAdapter.getRequestUrl(context.getRequest()),
                 timestamp: new Date().toISOString(),
             },
             this.getStatus(exception),
         );
-    }
-
-    private getExceptionData(exception: unknown): { message: string } {
-        if (exception instanceof HttpException) {
-            return {
-                message: exception.message,
-            };
-        }
-        if (exception instanceof AppException) {
-            return {
-                message: exception.message,
-            };
-        }
-        console.error('exception', exception);
-        return {
-            message: 'unknown',
-        };
     }
 
     private getStatus(exception: unknown) {

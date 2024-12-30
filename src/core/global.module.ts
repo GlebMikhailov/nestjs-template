@@ -9,6 +9,10 @@ import { AppService } from '@core/app/app.service';
 import { CorsUpdater } from '@core/cors/cors-updater';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CommandModule } from 'nestjs-command';
+import { LoggerService } from '@core/logger/logger';
+import { LoggingInterceptor } from '@core/logger/logging.interceptor';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { HttpModule } from '@nestjs/axios';
 
 @Global()
 @Module({
@@ -36,8 +40,20 @@ import { CommandModule } from 'nestjs-command';
             },
         ]),
         CommandModule,
+        HttpModule.register({
+            timeout: 5000,
+            maxRedirects: 2,
+        }),
     ],
-    providers: [AppService, CorsUpdater],
+    providers: [
+        AppService,
+        CorsUpdater,
+        LoggerService,
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: LoggingInterceptor,
+        },
+    ],
     exports: [
         CqrsModule,
         ConfigModule,
@@ -46,6 +62,8 @@ import { CommandModule } from 'nestjs-command';
         EventEmitterModule,
         CorsUpdater,
         CommandModule,
+        LoggerService,
+        HttpModule,
     ],
 })
 export class GlobalModule {}

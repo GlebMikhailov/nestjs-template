@@ -47,6 +47,7 @@ export class AuthDatabaseRepository implements IAuthDatabaseRepository {
                 user: true,
             },
         });
+
         if (!oldSession) {
             throw new SessionNotFound();
         }

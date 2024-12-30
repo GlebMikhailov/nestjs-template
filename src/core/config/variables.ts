@@ -17,4 +17,12 @@ export class EnvironmentVariables {
 
     @IsString()
     DATABASE_URL: string;
+
+    @IsString()
+    TELEGRAM_BOT_TOKEN: string;
+
+    @IsString()
+    TELEGRAM_CHAT_ID: string;
 }
+
+export type TEnvironment = keyof typeof Environment;
