@@ -1,12 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EnvironmentVariables } from '@core/config/variables';
 import { AppService } from '@core/app/app.service';
 import { CorsUpdater } from '@core/cors/cors-updater';
 import helmet from 'helmet';
 import { CoreModule } from '@core/core.module';
+import { LoggerService } from '@core/logger/logger';
 
 async function bootstrap() {
     const app = await NestFactory.create(CoreModule);
@@ -59,14 +60,8 @@ async function bootstrap() {
 
     app.use(helmet());
 
-    app.useGlobalPipes(
-        new ValidationPipe({
-            transform: true,
-            transformOptions: { enableImplicitConversion: true },
-        }),
-    );
-
     await app.listen(configService.get('PORT'));
+    app.get(LoggerService).info(`App started on the ${configService.get('BACKEND_URL')}`);
 }
 
 bootstrap();

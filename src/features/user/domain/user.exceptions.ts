@@ -5,3 +5,9 @@ export class UserAlreadyCreated extends AppException {
         super(message);
     }
 }
+
+export class UserNotFound extends AppException {
+    constructor(message = 'user-not-found') {
+        super(message);
+    }
+}

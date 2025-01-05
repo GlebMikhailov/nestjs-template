@@ -4,10 +4,12 @@ import {
     SerializeOptions,
     SetMetadata,
     UseGuards,
+    UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { TUserRole } from '@user/domain/models/role.enum';
 import { AuthGuard } from '@core/http/auth.guard';
+import { SerializerInterceptor } from '@core/http/serialization.interceptor';
 
 export type TClientType = 'User' | 'Public';
 
@@ -78,12 +80,16 @@ export function RestRequestInfo(meta: IRestRequestInfoMeta) {
 
             clients.push('User');
         }
-        if (meta.authorization.isRequired) {
+        if (!meta.authorization.isRequired) {
             clients.push('Public');
         }
         decorators.push(ApiResponse({ description: 'unauthorized', status: 401 }));
         decorators.push(SetMetadata(CLIENTS_KEY, clients));
         decorators.push(UseGuards(AuthGuard));
+    }
+
+    if (meta.success.type) {
+        decorators.push(UseInterceptors(new SerializerInterceptor(meta.success.type)));
     }
 
     decorators.push(

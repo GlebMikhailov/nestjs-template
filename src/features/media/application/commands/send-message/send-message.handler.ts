@@ -14,6 +14,6 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
 
     async execute(command: SendMessageCommand) {
         const { sendMessageDto } = command;
-        await this.telegramRepository.sendMessage(sendMessageDto.message, 'HTML');
+        await this.telegramRepository.sendMessage(sendMessageDto.message, 'MARKDOWN');
     }
 }

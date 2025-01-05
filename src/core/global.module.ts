@@ -10,9 +10,9 @@ import { CorsUpdater } from '@core/cors/cors-updater';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CommandModule } from 'nestjs-command';
 import { LoggerService } from '@core/logger/logger';
-import { LoggingInterceptor } from '@core/logger/logging.interceptor';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 import { HttpModule } from '@nestjs/axios';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { EnvironmentVariables } from '@core/config/variables';
 
 @Global()
 @Module({
@@ -44,16 +44,18 @@ import { HttpModule } from '@nestjs/axios';
             timeout: 5000,
             maxRedirects: 2,
         }),
+        PrometheusModule.registerAsync({
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService<EnvironmentVariables>) => {
+                return {
+                    pushgateway: {
+                        url: configService.get<string>('PUSHGATEWAY_URL'),
+                    },
+                };
+            },
+        }),
     ],
-    providers: [
-        AppService,
-        CorsUpdater,
-        LoggerService,
-        {
-            provide: APP_INTERCEPTOR,
-            useClass: LoggingInterceptor,
-        },
-    ],
+    providers: [AppService, CorsUpdater, LoggerService],
     exports: [
         CqrsModule,
         ConfigModule,

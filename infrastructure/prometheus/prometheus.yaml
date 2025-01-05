@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s  # Интервал сбора метрик
+  evaluation_interval: 15s  # Интервал оценки выражений правил
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: [ 'localhost:9090' ]
+  - job_name: 'pushgateway'
+    static_configs:
+      - targets: [ 'pushgateway:9091' ]

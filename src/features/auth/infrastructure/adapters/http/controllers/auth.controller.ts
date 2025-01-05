@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { SignInDto } from '@auth/domain/dto/sign-in.dto';
@@ -6,7 +6,6 @@ import { SignInCommand } from '@auth/application/commands/sign-in/sign-in.comman
 import { RestRequestInfo } from '@core/http/rest/request.info';
 import { SessionResponse } from '@auth/domain/dto/session.response';
 import { SignOutCommand } from '@auth/application/commands/sign-out/sign-out.command';
-import { Request } from 'express';
 import { Client, TClient } from '@core/http/client';
 import { UpdateTokenCommand } from '@auth/application/commands/update-tokens/update-token.command';
 

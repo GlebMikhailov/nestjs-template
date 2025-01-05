@@ -1,39 +1,85 @@
 version: '3.9'
-name: 'dev'
+name: 'template-api-dev'
+
 services:
   postgres:
     image: postgres:16.1
     container_name: postgres
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:
-      - ./.envs/.dev/postgres.env
+      - .env
+    environment:
+       POSTGRES_PORT: 5432
+       POSTGRES_DB: templatedbnestjs
+       POSTGRES_USER: templatedbnestuser
+       POSTGRES_PASSWORD: asdf32dfs8h7hedsfgk09DFKds0d
+    network_mode: host
   api:
     build:
-      context: ./apps/api
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: api
-    image: backend:api-v1.0.1
-    env_file:
-      - ./.envs/.dev/api.env
+    image: backend:api-v1.0.0
     restart: always
     ports:
-      - "3001:3001"
+      - "3001:${PORT}"
     depends_on:
       - postgres
+      - prometheus
   nginx:
     image: nginx:latest
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - ./deploy/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./deploy/nginx/ssl:/etc/nginx/ssl:ro
     restart: always
+    volumes:
+      - ./nginx/conf/:/infrastructure/nginx/conf.d/:ro
+      - ./certbot/www/:/var/www/certbot/:ro
     depends_on:
       - api
+      - certbot
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/infrastructure/letsencrypt/:rw
+  pushgateway:
+    image: prom/pushgateway
+    container_name: pushgateway
+    restart: unless-stopped
+    ports:
+      - "9091:9091"
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    volumes:
+      - ./infrastructure/prometheus/:/prometheus
+      - prometheus_data:/prometheus
+    depends_on:
+      - pushgateway
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3003:3000"
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/services.ini:/etc/grafana/services.ini
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
 
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:

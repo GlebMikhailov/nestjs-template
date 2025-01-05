@@ -1,9 +1,12 @@
 import { PrismaService } from '@core/persistence/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from '@user/domain/dto/create-user.dto';
-import { User } from '@user/domain/models/user.model';
+import { User, Users, UsersList } from '@user/domain/models/user.model';
 import { IUserDatabaseRepository } from '@user/domain/ports/user-database.repository.interface';
 import * as bcrypt from 'bcrypt';
+import { GetUsersDto } from '@user/domain/dto/get-users.dto';
+import { BASE_LIMIT, BASE_OFFSET } from '@core/common/base.paginated-list';
+import { UnavailableOrderKey, UnavailableQueryKey } from '@core/exceptions/app.exception';
 
 @Injectable()
 export class UserDatabaseRepository implements IUserDatabaseRepository {
@@ -47,5 +50,40 @@ export class UserDatabaseRepository implements IUserDatabaseRepository {
             return null;
         }
         return new User(user);
+    }
+
+    async getAllUsers(getUsersDto: GetUsersDto): Promise<UsersList> {
+        // Check query keys
+        if (!['login'].includes(getUsersDto.queryKey)) {
+            throw new UnavailableQueryKey();
+        }
+        if (!['login', 'role'].includes(getUsersDto.orderBy)) {
+            throw new UnavailableOrderKey();
+        }
+        const where = getUsersDto.queryValue
+            ? {
+                  [getUsersDto.queryKey]: {
+                      contains: getUsersDto.queryValue,
+                      mode: 'insensitive',
+                  },
+              }
+            : {};
+        const [data, count] = await this.prismaService.$transaction([
+            this.prismaService.user.findMany({
+                where,
+                skip: getUsersDto.offset ?? BASE_OFFSET,
+                take: getUsersDto.limit ?? BASE_LIMIT,
+                orderBy: {
+                    [getUsersDto.orderBy]: getUsersDto.orderingType,
+                },
+            }),
+            this.prismaService.user.count({
+                where,
+            }),
+        ]);
+        return new UsersList(
+            data.map((record) => new Users(record)),
+            count,
+        );
     }
 }

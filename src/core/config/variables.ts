@@ -23,6 +23,12 @@ export class EnvironmentVariables {
 
     @IsString()
     TELEGRAM_CHAT_ID: string;
+
+    @IsString()
+    PUSHGATEWAY_URL: string;
+
+    @IsString()
+    BACKEND_URL: string;
 }
 
 export type TEnvironment = keyof typeof Environment;

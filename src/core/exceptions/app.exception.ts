@@ -15,3 +15,15 @@ export class InvalidToken extends AppException {
         super(message);
     }
 }
+
+export class UnavailableQueryKey extends AppException {
+    constructor(readonly message: string = 'unavailable-query-key') {
+        super(message);
+    }
+}
+
+export class UnavailableOrderKey extends AppException {
+    constructor(readonly message: string = 'unavailable-order-key') {
+        super(message);
+    }
+}
