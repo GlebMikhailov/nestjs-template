@@ -9,6 +9,8 @@ import { SendMessageDto } from '@media/domain/dto/send-message.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { Counter, Histogram } from 'prom-client';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { ConfigService } from '@nestjs/config';
+import { EnvironmentVariables } from '@core/config/variables';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -20,6 +22,7 @@ export class LoggingInterceptor implements NestInterceptor {
         private readonly httpRequestsTotal: Counter<string>,
         @InjectMetric('http_request_duration_seconds')
         private readonly httpRequestDurationSeconds: Histogram<string>,
+        private readonly configService: ConfigService<EnvironmentVariables>,
     ) {}
 
     async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
@@ -41,13 +44,15 @@ export class LoggingInterceptor implements NestInterceptor {
                         `Handled exception on path ${path}: ${getExceptionData(error).message}`,
                     );
                 } else {
-                    this.commandBus.execute(
-                        new SendMessageCommand(
-                            new SendMessageDto(
-                                `New error handled:\n\n${this.monospaceFont()}${error}${this.monospaceFont()}`,
+                    if (this.configService.get('NODE_ENV') !== 'local') {
+                        this.commandBus.execute(
+                            new SendMessageCommand(
+                                new SendMessageDto(
+                                    `New error handled:\n\n${this.monospaceFont()}${error}${this.monospaceFont()}`,
+                                ),
                             ),
-                        ),
-                    );
+                        );
+                    }
                     this.loggerService.error(`Error on path ${path}: ${error}`);
                 }
                 this.httpRequestDurationSeconds.observe(timeAfterExecuting - now);
