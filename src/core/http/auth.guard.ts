@@ -73,7 +73,7 @@ export class AuthGuard implements CanActivate {
             }
             return requiredUserRoles.includes(request['client-info']['role']);
         } catch (err) {
-            return false;
+            throw new UnauthorizedException();
         }
     }
 }

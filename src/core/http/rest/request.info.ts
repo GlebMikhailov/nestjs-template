@@ -18,6 +18,10 @@ export const CLIENTS_KEY = 'clients';
 
 export const TOKEN_TYPE_KEY = 'tokenTypeKey';
 
+export const UserRoles = (...roles: TUserRole[]) => SetMetadata(USER_ROLES_KEY, roles);
+
+export const Clients = (...roles: TClientType[]) => SetMetadata(CLIENTS_KEY, roles);
+
 export interface IUserAuthorizationMeta {
     roles: TUserRole[] | '*';
     /**

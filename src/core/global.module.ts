@@ -13,6 +13,10 @@ import { LoggerService } from '@core/logger/logger';
 import { HttpModule } from '@nestjs/axios';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { EnvironmentVariables } from '@core/config/variables';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { GraphQLModule } from '@nestjs/graphql';
+import { GraphQLError } from 'graphql/error';
+import { join } from 'path';
 
 @Global()
 @Module({
@@ -53,6 +57,40 @@ import { EnvironmentVariables } from '@core/config/variables';
                     },
                 };
             },
+        }),
+        GraphQLModule.forRootAsync<ApolloDriverConfig>({
+            driver: ApolloDriver,
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService<EnvironmentVariables>) => {
+                return {
+                    playground: configService.get('NODE_ENV') !== 'production',
+                    sortSchema: true,
+                    autoSchemaFile: true,
+                    definitions: {
+                        path: join(process.cwd(), 'graphql/graphql.ts'),
+                    },
+                    formatError: (error: GraphQLError) => {
+                        const splitedError = error.message.split(';');
+                        const mapped =
+                            error.extensions?.originalError &&
+                            Array.isArray(
+                                error.extensions?.originalError['message'],
+                            ) &&
+                            error.extensions?.originalError['message'].map((p) =>
+                                p.replaceAll(' ', '-'),
+                            );
+                        const graphQLFormattedError: any & { params: string[] } = {
+                            message: mapped ? mapped : [splitedError[0]],
+                            params: [
+                                ...splitedError
+                                    .slice(1)
+                                    .map((p) => p.split('=')[1]),
+                            ],
+                        };
+                        return graphQLFormattedError;
+                    },
+                }
+            }
         }),
     ],
     providers: [AppService, CorsUpdater, LoggerService],
