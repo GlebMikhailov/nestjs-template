@@ -1,73 +1,179 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# NestJs Monolith Template
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Project structure
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Installation
-
-```bash
-$ npm install
+### General project structure
+```
+├── core  # general logic or logic not related to the client contains various application settings
+│   ├── app  # classes necessary for interaction with the application
+│   ├── common  # common code for all features
+│   ├── config  # environmental configuration
+│   ├── core.module.ts  # application module
+│   ├── cors  # cors logic
+│   ├── exceptions  # general exceptions
+│   ├── global.module.ts  # global module, contains common classes and modules
+│   ├── http  # http communication utilities
+│   ├── logger  # configuration of the local logger
+│   └── persistence  # database configuration 
+├── features  # product features
+│   ├── auth  # client authorisation logic
+│   ├── media  # logic of third-party media services
+│   ├── root  # feature of combining user features, may also contain common logic, e.g. - database seed
+│   └── user  # logic of interaction with a client of user type
+├── cli.ts  # need to run the command
+└── main.ts  # application entry point
 ```
 
-## Running the app
+### Auth feature structure
+```
+.
+├── application
+│   # Contains the application logic and use cases for authentication.
+│   ├── auth-application.module.ts
+│   # Module that configures and exports all application-level logic for auth.
+│   ├── commands
+│   # Contains command definitions and handlers for performing actions.
+│   │   ├── index.ts
+│   # Exports all command definitions and handlers.
+│   │   ├── sign-in
+│   # Contains command definitions and handlers for user sign-in.
+│   │   │   ├── sign-in.command.ts
+│   # Defines the sign-in command.
+│   │   │   └── sign-in.handler.ts
+│   # Handles the sign-in command logic.
+│   │   ├── sign-out
+│   # Contains command definitions and handlers for user sign-out.
+│   │   │   ├── sign-out.command.ts
+│   # Defines the sign-out command.
+│   │   │   └── sign-out.handler.ts
+│   # Handles the sign-out command logic.
+│   │   └── update-tokens
+│   # Contains command definitions and handlers for updating tokens.
+│   │       ├── update-token.command.ts
+│   # Defines the update tokens command.
+│   │       └── update-token.handler.ts
+│   # Handles the update tokens command logic.
+│   └── query
+│   # Contains query definitions and handlers for retrieving data.
+│       ├── get-sessions
+│   # Contains query definitions and handlers for retrieving user sessions.
+│       │   ├── get-sessions.handler.ts
+│   # Handles the get sessions query logic.
+│       │   └── get-sessions.query.ts
+│   # Defines the get sessions query.
+│       └── index.ts
+│   # Exports all query definitions and handlers.
+├── auth.module.ts
+│   # Main module for the authentication feature, orchestrates all sub-modules.
+├── domain
+│   # Contains the domain models, interfaces, and business logic.
+│   ├── dto
+│   # Contains data transfer objects used for transferring data.
+│   │   ├── session.response.ts
+│   # Data transfer object for a single session response.
+│   │   ├── sessions.response.ts
+│   # Data transfer object for multiple sessions response.
+│   │   └── sign-in.dto.ts
+│   # Data transfer object for sign-in requests.
+│   ├── exceptions.ts
+│   # Contains custom exceptions related to the authentication domain.
+│   ├── models
+│   # Contains the domain model definitions for authentication entities.
+│   │   ├── session.model.ts
+│   # Definition of the session domain model.
+│   │   └── sessions.model.ts
+│   # Definition of the sessions domain model.
+│   └── ports
+│   # Contains interfaces that define the contracts for domain services.
+│       └── auth-database.repository.interface.ts
+│   # Interface for accessing authentication data from a database.
+└── infrastructure
+    # Contains the implementation details for the infrastructure concerns (adapters, providers, etc.).
+    ├── adapters
+    # Contains adapters for external systems like HTTP and persistence.
+    │   ├── http
+    # Contains HTTP related logic for handling requests and responses.
+    │   │   └── controllers
+    # Contains controllers for exposing APIs.
+    │   │       ├── auth.controller.ts
+    # Controller for handling auth-related HTTP requests.
+    │   │       └── index.ts
+    # Exports all controllers.
+    │   └── persistence
+    # Contains persistence logic using repositories.
+    │       └── auth-database.repository.ts
+    # Implementation of the auth database repository.
+    ├── auth-infrastructure.module.ts
+    # Module to configure and export all infrastructure-level dependencies for auth.
+    └── providers
+    # Contains providers for dependency injection.
+        ├── database.repository.provider.ts
+    # Provides the database repository implementation to other modules.
+        └── index.ts
+    # Exports all providers.
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
 ```
 
-## Test
+<div style="font-family: sans-serif; line-height: 1.6;">
+    <h2 style="border-bottom: 2px solid #ddd; padding-bottom: 0.5em; margin-bottom: 1em;">Technology stack</h2>
+    <p>This project utilises the following technologies:</p>
 
-```bash
-# unit tests
-$ npm run test
+<h3 style="margin-top: 1.5em; color: #333;">Backend</h3>
+<ul style="list-style: none; padding-left: 0;">
+    <li style="margin-bottom: 0.8em;">
+        <a href="https://nestjs.com/" style="text-decoration: none; color: #333;">
+            <img src="https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white"
+                 alt="NestJS" style="vertical-align: middle; margin-right: 0.5em;" />
+            <span style="font-weight: bold;">NestJS</span>
+        </a>
+        <br>
+        <span style="margin-left: 2.5em; display: block; color: #666;">A framework for building scalable server-side applications on Node.js..</span>
+</li>
 
-# e2e tests
-$ npm run test:e2e
+<li style="margin-bottom: 0.8em;">
+        <a href="https://rxjs.dev/" style="text-decoration: none; color: #333;">
+            <img
+                src="https://img.shields.io/badge/rxjs-%23B7178C.svg?style=for-the-badge&logo=reactivex&logoColor=white"
+                alt="RxJS" style="vertical-align: middle; margin-right: 0.5em;" />
+            <span style="font-weight: bold;">RxJS</span>
+        </a>
+        <br>
+        <span style="margin-left: 2.5em; display: block; color: #666;">A library for reactive programming with asynchronous data streams.</span>
+</li>
 
-# test coverage
-$ npm run test:cov
-```
+<li style="margin-bottom: 0.8em;">
+        <a href="https://graphql.org/" style="text-decoration: none; color: #333;">
+            <img
+                src="https://img.shields.io/badge/GraphQL-%23E10098.svg?style=for-the-badge&logo=graphql&logoColor=white"
+                alt="GraphQL" style="vertical-align: middle; margin-right: 0.5em;" />
+            <span style="font-weight: bold;">GraphQL</span>
+        </a>
+        <br>
+        <span style="margin-left: 2.5em; display: block; color: #666;">A query language for your API that allows clients to request exactly what they need.</span>
+</li>
 
-## Support
+<li style="margin-bottom: 0.8em;">
+        <a href="https://www.prisma.io/" style="text-decoration: none; color: #333;">
+            <img src="https://img.shields.io/badge/prisma-%233982CE.svg?style=for-the-badge&logo=prisma&logoColor=white"
+                 alt="Prisma" style="vertical-align: middle; margin-right: 0.5em;" />
+            <span style="font-weight: bold;">Prisma</span>
+        </a>
+        <br>
+        <span style="margin-left: 2.5em; display: block; color: #666;">ORM (Object-Relational Mapper) for database access.</span>
+</li>
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+<li style="margin-bottom: 0.8em;">
+        <a href="https://swagger.io/" style="text-decoration: none; color: #333;">
+            <img
+                src="https://img.shields.io/badge/swagger-%23C6C6C6.svg?style=for-the-badge&logo=swagger&logoColor=black"
+                alt="Swagger" style="vertical-align: middle; margin-right: 0.5em;" />
+            <span style="font-weight: bold;">Swagger</span>
+        </a>
+        <br>
+        <span
+            style="margin-left: 2.5em; display: block; color: #666;">API description and documentation tool</span>
+</li>
+</ul>
+</div>
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+## Good coding and happy day!🤘
