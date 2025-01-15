@@ -3,7 +3,7 @@ import { Clients } from '@core/http/rest/request.info';
 import { GraphqlUserResponse } from '@user/domain/dto/graphql-user.response';
 import { Client, TClient } from '@core/http/client';
 import { GetUserQuery } from '@user/application/queries/get-user/get-user.query';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { QueryBus } from '@nestjs/cqrs';
 
 @Resolver()
 export class UserResolver {

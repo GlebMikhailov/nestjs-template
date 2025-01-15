@@ -73,24 +73,18 @@ import { join } from 'path';
                         const splitedError = error.message.split(';');
                         const mapped =
                             error.extensions?.originalError &&
-                            Array.isArray(
-                                error.extensions?.originalError['message'],
-                            ) &&
+                            Array.isArray(error.extensions?.originalError['message']) &&
                             error.extensions?.originalError['message'].map((p) =>
                                 p.replaceAll(' ', '-'),
                             );
                         const graphQLFormattedError: any & { params: string[] } = {
                             message: mapped ? mapped : [splitedError[0]],
-                            params: [
-                                ...splitedError
-                                    .slice(1)
-                                    .map((p) => p.split('=')[1]),
-                            ],
+                            params: [...splitedError.slice(1).map((p) => p.split('=')[1])],
                         };
                         return graphQLFormattedError;
                     },
-                }
-            }
+                };
+            },
         }),
     ],
     providers: [AppService, CorsUpdater, LoggerService],

@@ -58,17 +58,19 @@ async function bootstrap() {
         SwaggerModule.setup('api/docs', app, documentFactory);
     }
 
-    app.use(helmet({
-        crossOriginEmbedderPolicy: false,
-        contentSecurityPolicy: {
-            directives: {
-                imgSrc: [`'self'`, 'data:', 'apollo-server-landing-page.cdn.apollographql.com'],
-                scriptSrc: [`'self'`, `https: 'unsafe-inline'`],
-                manifestSrc: [`'self'`, 'apollo-server-landing-page.cdn.apollographql.com'],
-                frameSrc: [`'self'`, 'sandbox.embed.apollographql.com'],
+    app.use(
+        helmet({
+            crossOriginEmbedderPolicy: false,
+            contentSecurityPolicy: {
+                directives: {
+                    imgSrc: [`'self'`, 'data:', 'apollo-server-landing-page.cdn.apollographql.com'],
+                    scriptSrc: [`'self'`, `https: 'unsafe-inline'`],
+                    manifestSrc: [`'self'`, 'apollo-server-landing-page.cdn.apollographql.com'],
+                    frameSrc: [`'self'`, 'sandbox.embed.apollographql.com'],
+                },
             },
-        },
-    }));
+        }),
+    );
 
     await app.listen(configService.get('PORT'));
     app.get(LoggerService).info(`App started on the ${configService.get('BACKEND_URL')}`);
