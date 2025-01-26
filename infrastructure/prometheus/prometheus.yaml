@@ -1,11 +1,13 @@
 global:
-  scrape_interval: 15s  # Интервал сбора метрик
-  evaluation_interval: 15s  # Интервал оценки выражений правил
+  scrape_interval: 10s
 
 scrape_configs:
-  - job_name: 'prometheus'
+  - job_name: 'vmagent'
     static_configs:
-      - targets: [ 'localhost:9090' ]
-  - job_name: 'pushgateway'
+      - targets: ['vmagent:8429']
+  - job_name: 'vmalert'
     static_configs:
-      - targets: [ 'pushgateway:9091' ]
+      - targets: ['vmalert:8880']
+  - job_name: 'victoriametrics'
+    static_configs:
+      - targets: ['victoriametrics:8428']

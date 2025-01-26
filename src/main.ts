@@ -26,7 +26,8 @@ async function bootstrap() {
 
     corsUpdater.update();
 
-    if (configService.get('NODE_ENV') !== 'production') {
+    const isProductionMode = configService.get('NODE_ENV') === 'production';
+    if (!isProductionMode) {
         const config = new DocumentBuilder()
             .setTitle('Template')
             .setDescription('The templates API description')
@@ -73,7 +74,13 @@ async function bootstrap() {
     );
 
     await app.listen(configService.get('PORT'));
-    app.get(LoggerService).info(`App started on the ${configService.get('BACKEND_URL')}`);
+    const baseEndpoint = configService.get('BACKEND_URL');
+    const logger = app.get(LoggerService);
+    logger.info(`App started on the ${baseEndpoint}`);
+    if (!isProductionMode) {
+        logger.info(`Swagger is available on the ${baseEndpoint}/api/docs`);
+        logger.info(`Graphql is available on the ${baseEndpoint}/graphql`);
+    }
 }
 
 bootstrap();

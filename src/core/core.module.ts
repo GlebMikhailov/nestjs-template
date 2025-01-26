@@ -33,6 +33,10 @@ import { LoggingInterceptor } from '@core/logger/logging.interceptor';
             name: 'http_requests_total',
             help: 'The total number of processed queries',
         }),
+        makeCounterProvider({
+            name: 'my_custom_event',
+            help: 'The total number of processed queries',
+        }),
         makeHistogramProvider({
             name: 'http_request_duration_seconds',
             help: 'Duration of HTTP requests in seconds',

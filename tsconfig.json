@@ -32,6 +32,9 @@
       ],
       "@media/*": [
         "./src/features/media/*"
+      ],
+      "@analytics/*": [
+        "./src/features/analytics/*"
       ]
     }
   }

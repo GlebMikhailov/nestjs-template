@@ -3,7 +3,7 @@ import { User, UsersList } from '@user/domain/models/user.model';
 import { GetUsersDto } from '@user/domain/dto/get-users.dto';
 
 export interface IUserDatabaseRepository {
-    createUser(createUserDto: CreateUserDto): Promise<void>;
+    createUser(createUserDto: CreateUserDto): Promise<User>;
 
     getUserByLogin(login: string): Promise<User | null>;
 

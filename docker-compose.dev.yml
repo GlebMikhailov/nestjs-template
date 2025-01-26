@@ -2,84 +2,150 @@ version: '3.9'
 name: 'template-api-dev'
 
 services:
-  postgres:
-    image: postgres:16.1
-    container_name: postgres
+  #  postgres:
+  #    image: postgres:16.1
+  #    container_name: postgres
+  #    ports:
+  #      - "5432:5432"
+  #    volumes:
+  #      - postgres_data:/var/lib/postgresql/data
+  #    env_file:
+  #      - .env
+  #    environment:
+  #       POSTGRES_PORT: 5432
+  #       POSTGRES_DB: templatedbnestjs
+  #       POSTGRES_USER: templatedbnestuser
+  #       POSTGRES_PASSWORD: asdf32dfs8h7hedsfgk09DFKds0d
+  #    network_mode: host
+  #  api:
+  #    build:
+  #      dockerfile: Dockerfile.dev
+  #    container_name: api
+  #    image: backend:api-v1.0.0
+  #    restart: always
+  #    ports:
+  #      - "3001:${PORT}"
+  #    depends_on:
+  #      - postgres
+  #      - prometheus
+  #  nginx:
+  #    image: nginx:latest
+  #    ports:
+  #      - "80:80"
+  #      - "443:443"
+  #    restart: always
+  #    volumes:
+  #      - ./nginx/conf/:/infrastructure/nginx/conf.d/:ro
+  #      - ./certbot/www/:/var/www/certbot/:ro
+  #    depends_on:
+  #      - api
+  #      - certbot
+  #  certbot:
+  #    image: certbot/certbot:latest
+  #    volumes:
+  #      - ./certbot/www/:/var/www/certbot/:rw
+  #      - ./certbot/conf/:/infrastructure/letsencrypt/:rw
+  vmagent:
+    container_name: vmagent
+    image: victoriametrics/vmagent:v1.109.1
+    depends_on:
+      - "victoriametrics"
     ports:
-      - "5432:5432"
+      - 8429:8429
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    env_file:
-      - .env
-    environment:
-       POSTGRES_PORT: 5432
-       POSTGRES_DB: templatedbnestjs
-       POSTGRES_USER: templatedbnestuser
-       POSTGRES_PASSWORD: asdf32dfs8h7hedsfgk09DFKds0d
-    network_mode: host
-  api:
-    build:
-      dockerfile: Dockerfile.dev
-    container_name: api
-    image: backend:api-v1.0.0
+      - vmagent_data:/vmagent_data
+      - ./infrastructure/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+    command:
+      - "--promscrape.config=/etc/prometheus/prometheus.yml"
+      - "--remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+    
+
     restart: always
+  # VictoriaMetrics instance, a single process responsible for
+  # storing metrics and serve read requests.
+  victoriametrics:
+    container_name: victoriametrics
+    image: victoriametrics/victoria-metrics:v1.109.1
     ports:
-      - "3001:${PORT}"
-    depends_on:
-      - postgres
-      - prometheus
-  nginx:
-    image: nginx:latest
-    ports:
-      - "80:80"
-      - "443:443"
+      - 8428:8428
+      - 8089:8089
+      - 8089:8089/udp
+      - 2003:2003
+      - 2003:2003/udp
+      - 4242:4242
+    volumes:
+      - vm_data:/storage
+    command:
+      - "--storageDataPath=/storage"
+      - "--graphiteListenAddr=:2003"
+      - "--opentsdbListenAddr=:4242"
+      - "--httpListenAddr=:8428"
+      - "--influxListenAddr=:8089"
+      - "--vmalert.proxyURL=http://vmalert:8880"
+    
+
     restart: always
-    volumes:
-      - ./nginx/conf/:/infrastructure/nginx/conf.d/:ro
-      - ./certbot/www/:/var/www/certbot/:ro
-    depends_on:
-      - api
-      - certbot
-  certbot:
-    image: certbot/certbot:latest
-    volumes:
-      - ./certbot/www/:/var/www/certbot/:rw
-      - ./certbot/conf/:/infrastructure/letsencrypt/:rw
-  pushgateway:
-    image: prom/pushgateway
-    container_name: pushgateway
-    restart: unless-stopped
-    ports:
-      - "9091:9091"
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    restart: unless-stopped
-    volumes:
-      - ./infrastructure/prometheus/:/prometheus
-      - prometheus_data:/prometheus
-    depends_on:
-      - pushgateway
+
+  # Grafana instance configured with VictoriaMetrics as datasource
   grafana:
-    image: grafana/grafana
     container_name: grafana
+    image: grafana/grafana:10.4.2
+    depends_on:
+      - "victoriametrics"
     ports:
-      - "3003:3000"
-    restart: always
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=grafana
+      - 3100:3000
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/services.ini:/etc/grafana/services.ini
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
-    depends_on:
-      - prometheus
+      - ./infrastructure/grafana/datasources/prometheus-datasource/single.yml:/etc/grafana/provisioning/datasources/single.yml
+      - ./infrastructure/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./infrastructure/grafana/vm_dashboards/victoriametrics.json:/var/lib/grafana/dashboards/vm.json
+      - ./infrastructure/grafana/vm_dashboards/vmagent.json:/var/lib/grafana/dashboards/vmagent.json
+      - ./infrastructure/grafana/vm_dashboards/vmalert.json:/var/lib/grafana/dashboards/vmalert.json
+    restart: always
 
+  # vmalert executes alerting and recording rules
+  vmalert:
+    container_name: vmalert
+    image: victoriametrics/vmalert:v1.109.1
+    depends_on:
+      - "victoriametrics"
+      - "alertmanager"
+    ports:
+      - 8880:8880
+    volumes:
+      - ./infrastructure/vmalert/rules/alerts.yml:/etc/alerts/alerts.yml
+      - ./infrastructure/vmalert/rules/alerts-health.yml:/etc/alerts/alerts-health.yml
+      - ./infrastructure/vmalert/rules/alerts-vmagent.yml:/etc/alerts/alerts-vmagent.yml
+      - ./infrastructure/vmalert/rules/alerts-vmalert.yml:/etc/alerts/alerts-vmalert.yml
+    command:
+      - "--datasource.url=http://victoriametrics:8428/"
+      - "--remoteRead.url=http://victoriametrics:8428/"
+      - "--remoteWrite.url=http://vmagent:8429/"
+      - "--notifier.url=http://alertmanager:9093/"
+      - "--rule=/etc/alerts/*.yml"
+      # display source of alerts in grafana
+      - "--external.url=http://127.0.0.1:3000" #grafana outside container
+      - '--external.alert.source=explore?orgId=1&left={"datasource":"VictoriaMetrics","queries":[{"expr":{{.Expr|jsonEscape|queryEscape}},"refId":"A"}],"range":{"from":"{{ .ActiveAt.UnixMilli }}","to":"now"}}'
+    
+    restart: always
+
+  # alertmanager receives alerting notifications from vmalert
+  # and distributes them according to --config.file.
+  alertmanager:
+    container_name: alertmanager
+    image: prom/alertmanager:v0.27.0
+    volumes:
+      - ./infrastructure/alertmanager/alertmanager.yml:/config/alertmanager.yml
+    command:
+      - "--config.file=/config/alertmanager.yml"
+    ports:
+      - 9093:9093
+    
+
+    restart: always
 volumes:
-  postgres_data:
-  prometheus_data:
-  grafana_data:
+  postgres_data: { }
+  prometheus_data: { }
+  grafana_data: { }
+  vmagent_data: { }
+  vm_data: { }

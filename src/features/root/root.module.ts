@@ -5,9 +5,10 @@ import { CommandModule } from 'nestjs-command';
 import { ConfigService } from '@nestjs/config';
 import { UserModuleModule } from '@user/user.module';
 import { MediaApplicationModule } from '@media/application/media-application.module';
+import { AnalyticsModule } from '@analytics/analytics.module';
 
 @Module({
-    imports: [AuthModule, CommandModule, UserModuleModule, MediaApplicationModule],
+    imports: [AuthModule, CommandModule, UserModuleModule, MediaApplicationModule, AnalyticsModule],
     providers: [RootCommand, ConfigService],
 })
 export class RootModule {}

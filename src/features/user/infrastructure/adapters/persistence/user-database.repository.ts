@@ -17,15 +17,16 @@ export class UserDatabaseRepository implements IUserDatabaseRepository {
         return await bcrypt.hash(password, salt);
     }
 
-    async createUser(createUserDto: CreateUserDto): Promise<void> {
+    async createUser(createUserDto: CreateUserDto): Promise<User> {
         const hashedPassword = await this.hashPassword(createUserDto.password);
-        await this.prismaService.user.create({
+        const user = await this.prismaService.user.create({
             data: {
                 login: createUserDto.login,
                 password: hashedPassword,
                 role: createUserDto.role,
             },
         });
+        return new User(user);
     }
 
     async getUserByLogin(login: string): Promise<User> {

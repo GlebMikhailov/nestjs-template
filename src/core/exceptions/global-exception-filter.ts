@@ -2,16 +2,23 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from
 import { AppException } from '@core/exceptions/app.exception';
 import { HttpAdapterHost } from '@nestjs/core';
 import { getExceptionData } from '@core/exceptions/exception.parser';
+import { Counter } from 'prom-client';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-    constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
+    constructor(
+        private readonly httpAdapterHost: HttpAdapterHost,
+        @InjectMetric('my_custom_event')
+        private readonly customEvent: Counter<string>,
+    ) {
+        this.customEvent.inc();
+    }
 
     catch(exception: unknown, host: ArgumentsHost) {
         const context = host.switchToHttp();
         const response = context.getResponse<Response>();
         const { httpAdapter } = this.httpAdapterHost;
-
         httpAdapter.reply(
             response,
             {

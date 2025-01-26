@@ -84,7 +84,7 @@ export function RestRequestInfo(meta: IRestRequestInfoMeta) {
 
             clients.push('User');
         }
-        if (!meta.authorization.isRequired) {
+        if (!(meta.authorization.isRequired ?? true)) {
             clients.push('Public');
         }
         decorators.push(ApiResponse({ description: 'unauthorized', status: 401 }));

@@ -1,6 +1,7 @@
 import { AggregateRoot } from '@nestjs/cqrs';
 import { TUserRole } from '@user/domain/models/role.enum';
 import { BasePaginatedListAggregateRoot } from '@core/common/base.paginated-list';
+import { UserCreatedEvent } from '@analytics/application/events/new-users-metric/user-created.event';
 
 export interface IUserProperties {
     id: string;
@@ -18,6 +19,10 @@ export class User extends AggregateRoot implements IUserProperties {
     constructor(props: IUserProperties) {
         super();
         Object.assign(this, props);
+    }
+
+    create() {
+        this.apply(new UserCreatedEvent());
     }
 }
 

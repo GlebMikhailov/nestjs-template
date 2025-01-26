@@ -20,6 +20,7 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
             throw new UserAlreadyCreated();
         }
 
-        await this.userDatabaseRepository.createUser(createUserDto);
+        const user = await this.userDatabaseRepository.createUser(createUserDto);
+        user.create();
     }
 }

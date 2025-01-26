@@ -101,7 +101,7 @@
     # Exports all controllers.
     │   └── persistence
     # Contains persistence logic using repositories.
-    │       └── auth-database.repository.ts
+    │       └── victoria-repository.repository.ts
     # Implementation of the auth database repository.
     ├── auth-infrastructure.module.ts
     # Module to configure and export all infrastructure-level dependencies for auth.

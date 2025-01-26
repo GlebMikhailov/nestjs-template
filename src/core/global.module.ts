@@ -52,6 +52,7 @@ import { join } from 'path';
             inject: [ConfigService],
             useFactory: async (configService: ConfigService<EnvironmentVariables>) => {
                 return {
+                    path: '/metrics',
                     pushgateway: {
                         url: configService.get<string>('PUSHGATEWAY_URL'),
                     },

@@ -16,7 +16,7 @@ export class RootCommand {
         describe: 'Seed the database',
     })
     async seed() {
-        const admin = new CreateUserDto('administrator', 'p@sswo0rd', 'Admin');
+        const admin = new CreateUserDto('administdrator', 'p@ssw00rd', 'Admin');
         await this.commandBus.execute(new CreateUserCommand(admin));
     }
 }
